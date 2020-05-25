@@ -1,11 +1,9 @@
 import React from 'react';
 import Input from "../../components/Input/Input";
 import Title from "../../components/Title/Title";
-import LoaderContext from "../../context/loader/loaderContext";
+import {URL_API} from "../../constants";
 
 class Auth extends React.Component {
-
-    static contextType = LoaderContext;
 
     constructor(props) {
         super(props);
@@ -65,7 +63,7 @@ class Auth extends React.Component {
             ? `&cap_code_name=${captcha.code}&cap_code_value=${captcha.value}&cap_sid=${captcha.sid}`
             : '';
 
-        fetch(`http://localhost:9000/rutracker?username=${username.value}&password=${password.value}${captchaParams}`)
+        fetch(`${URL_API}rutracker?username=${username.value}&password=${password.value}${captchaParams}`)
             .then(res => res.text())
             .then(res => {
                 const responseObject = JSON.parse(res);
@@ -186,11 +184,11 @@ class Auth extends React.Component {
         return (
             <div className="container m-auto">
                 <div className="row justify-content-center">
-                    <div className="col-12 col-md-5 col-xl-4 my-5">
+                    <div className="col-5 col-xl-4 my-5">
 
                         {
                             this.state.authorized
-                                ? <h1>Вы авторизированны</h1>
+                                ? <h1>Вы авторизованы</h1>
                                 : <>
                                     <Title value={"Вход"}/>
                                     <form>
@@ -233,7 +231,7 @@ class Auth extends React.Component {
                                                 : null
                                         }
                                         <button className={"btn btn-lg btn-block btn-primary mb-2 mt-4"}
-                                                onClick={event => this.loginHandler(event)}>Ввойти
+                                                onClick={event => this.loginHandler(event)}>Войти
                                         </button>
                                         <div className="text-center">
                                             <small className="text-muted text-center">

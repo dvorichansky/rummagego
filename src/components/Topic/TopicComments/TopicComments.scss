@@ -1,0 +1,25 @@
+.topic-comment-user-info {
+  max-width: 150px;
+
+  h6 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  small {
+    display: block;
+  }
+
+  img {
+    width: 75px;
+    height: 75px;
+    object-fit: cover;
+  }
+}
+
+.topic-comments {
+  .q-post {
+    display: none;
+  }
+}

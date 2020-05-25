@@ -2,14 +2,14 @@ import React, {Component, createRef} from 'react';
 import './Topic.scss';
 import {withRouter} from 'react-router-dom';
 import queryString from "query-string";
-import LoaderContext from "../../context/loader/loaderContext";
 import htmlReactParse from "html-react-parser";
 import {faHome, faTimes} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import TopicComments from "./TopicComments/TopicComments";
+import {fixedParseContent} from "../../func/fixedParseContent";
+import {URL_API} from "../../constants";
 
 class Topic extends Component {
-
-    static contextType = LoaderContext;
 
     constructor(props) {
         super(props);
@@ -17,10 +17,12 @@ class Topic extends Component {
         this.state = {
             topicId: '',
             topic: {},
-            topicContentFixed: false
+            topicContentFixed: false,
+            topicCmBox: 0
         };
 
         this.buttonClose = createRef();
+        this.loadMoreCommentsHandler = this.loadMoreCommentsHandler.bind(this);
     }
 
     topicRutrackerAPI(params) {
@@ -30,8 +32,9 @@ class Topic extends Component {
         const password = localStorage.getItem('password');
 
         const id = (typeof params === 'object' && params.id) ? params.id : this.state.topicId;
+        const cm_box = (typeof params === 'object' && params.cm_box) ? params.cm_box : this.state.topicCmBox;
 
-        return fetch(`http://localhost:9000/rutracker?username=${username}&password=${password}&id=${id}`)
+        return fetch(`${URL_API}rutracker?username=${username}&password=${password}&id=${id}&cm_box=${cm_box}`)
             .then(res => res.text())
             .then(res => {
                 const responseObject = JSON.parse(res);
@@ -47,81 +50,13 @@ class Topic extends Component {
         const topic = await this.topicRutrackerAPI({id: parsed.id});
 
         // fix topic
-        const content = this.fixedTopicContent(topic.content);
+        const content = fixedParseContent(topic.content);
         topic.content = content;
 
         this.setState({
             topicId: parsed.id,
             topic
         })
-    }
-
-    fixedTopicContent(content) {
-        const newTopicContentImages = this.fixedTopicContentImg(content);
-        const newTopicContentImagesAndWrappers = this.fixedTopicContentWrappers(newTopicContentImages);
-        const newTopicContentImagesAndWrappersAndLink = this.fixedTopicContentLinks(newTopicContentImagesAndWrappers);
-
-        return newTopicContentImagesAndWrappersAndLink;
-    }
-
-    fixedTopicContentLinks(content) {
-        const div = document.createElement('div');
-        div.innerHTML = content;
-
-        const newContent = div;
-
-        const elementsLinksNode = newContent.querySelectorAll('.postLink');
-
-        elementsLinksNode.forEach((link) => {
-            link.target = '_blank';
-        });
-        return newContent.outerHTML;
-    }
-
-    fixedTopicContentWrappers(content) {
-        const div = document.createElement('div');
-        div.innerHTML = content;
-
-        const newContent = div;
-        const elementsWrapperNode = newContent.querySelectorAll('.sp-wrap');
-
-        elementsWrapperNode.forEach((element) => {
-            const id = Math.floor(Math.random() * (+1000 - +1)) + +1;
-
-            const elementCheckbox = document.createElement('input');
-            elementCheckbox.className = 'sp-wrap-checkbox btn';
-            elementCheckbox.id = id;
-            elementCheckbox.type = 'checkbox';
-
-            const elementHeadNode = element.querySelector('.sp-head');
-            const elementLabel = document.createElement('label');
-            elementLabel.htmlFor = id;
-            elementLabel.className = 'sp-head folded';
-            elementLabel.innerHTML = elementHeadNode.textContent;
-
-            elementHeadNode.remove();
-
-            element.insertAdjacentHTML('afterbegin', elementLabel.outerHTML);
-            element.insertAdjacentHTML('afterbegin', elementCheckbox.outerHTML);
-        });
-        return newContent.outerHTML;
-    }
-
-    fixedTopicContentImg(content) {
-        const div = document.createElement('div');
-        div.innerHTML = content;
-
-        const newContent = div;
-        const elementsVarNode = newContent.querySelectorAll('var');
-
-        elementsVarNode.forEach((element) => {
-            const elementVar = newContent.querySelector(`[title="${element.title}"]`);
-            const elementImg = document.createElement('img');
-            elementImg.src = element.title;
-            elementImg.className = elementVar.className;
-            elementVar.parentNode.replaceChild(elementImg, elementVar);
-        });
-        return newContent.outerHTML;
     }
 
     renderTopicData() {
@@ -146,6 +81,10 @@ class Topic extends Component {
                 </div>
 
                 {htmlReactParse(content)}
+                <TopicComments
+                    comments={this.state.topic.comments}
+                    loadMoreCommentsHandler={this.loadMoreCommentsHandler}
+                />
             </>
         )
     }
@@ -155,11 +94,29 @@ class Topic extends Component {
     }
 
     clickOutsideModalHandler(event) {
-        if(!event.target.classList.contains('modal-topic')) {
+        if (!event.target.classList.contains('modal-topic')) {
             return;
         }
 
         this.goBackTopicHandler();
+    }
+
+    async loadMoreCommentsHandler() {
+        let cm_box = this.state.topicCmBox + 1;
+        // cm_box = cm_box ? cm_box : 1;
+
+        const newTopicComments = await this.topicRutrackerAPI({cm_box});
+
+        const topic = {...this.state.topic};
+        const commentsConcat = topic.comments.concat(newTopicComments);
+        topic.comments = commentsConcat;
+
+        console.log(topic);
+
+        this.setState({
+            topic,
+            topicCmBox: cm_box
+        })
     }
 
     render() {
@@ -178,7 +135,7 @@ class Topic extends Component {
                                 ref={this.buttonClose}
                                 onClick={() => this.goBackTopicHandler()}
                             >
-                                <span aria-hidden="true"><FontAwesomeIcon icon={faTimes} className={""} /></span>
+                                <span aria-hidden="true"><FontAwesomeIcon icon={faTimes} className={""}/></span>
                             </button>
                             <div className="modal-dialog">
                                 <div className="modal-content">
@@ -220,7 +177,6 @@ class Topic extends Component {
     }
 
     componentDidUpdate() {
-        console.log(this.buttonClose.current);
         if (this.buttonClose.current) {
             this.buttonClose.current.focus();
         }

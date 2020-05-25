@@ -5,8 +5,8 @@ import Header from "./components/Header/Header";
 import Search from "./containers/Search/Search";
 import Home from "./containers/Home/Home";
 import {Loader} from "./components/Loader/Loader";
-import LoaderContext, {LoaderProvider} from "./context/loader/loaderContext";
 import Topic from "./components/Topic/Topic";
+import {connect} from "react-redux";
 
 class App extends React.Component {
     constructor(props) {
@@ -15,21 +15,30 @@ class App extends React.Component {
 
     render() {
         return (
-            <LoaderProvider value={LoaderContext}>
-                <div className={"min-vh-100 d-flex flex-column"}>
+            <div className={"min-vh-100 d-flex flex-column"}>
 
-                    <Header/>
-                    <Loader/>
-                    <div className={"d-flex flex-grow-1"}>
-                        <Route path={'/'} component={Home} exact/>
-                        <Route path={'/topic'} component={Topic}/>
-                        <Route path="/(search|topic)/" component={Search}/>
-                        <Route path={'/auth'} component={Auth}/>
-                    </div>
+                {
+                    this.props.loaderStatus
+                        ? <Loader/>
+                        : null
+                }
+
+                <Header/>
+                <div className={"d-flex flex-grow-1"}>
+                    <Route path={'/'} component={Home} exact/>
+                    <Route path={'/topic'} component={Topic}/>
+                    <Route path="/(search|topic)/" component={Search}/>
+                    <Route path={'/auth'} component={Auth}/>
                 </div>
-            </LoaderProvider>
+            </div>
         )
     }
 }
 
-export default App;
+function mapStateToProps(state) {
+    return {
+        loaderStatus: state.search.loading
+    }
+}
+
+export default connect(mapStateToProps)(App);

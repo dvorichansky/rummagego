@@ -24,7 +24,7 @@ h1, .h1 {
 
 // modal
 .modal {
-  background-color: rgba(0,0,0,.5);
+  background-color: rgba(0, 0, 0, .5);
 
   .modal-dialog {
     max-width: 1300px;
@@ -62,4 +62,28 @@ h1, .h1 {
 .border-right-radius-0 {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+}
+
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: .15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+    left: 50%;
+    margin-left: -12px;
+    top: 50%;
+    margin-top: -12px;
+  }
+
+  * {
+    opacity: 0;
+  }
 }

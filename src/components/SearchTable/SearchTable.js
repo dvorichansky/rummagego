@@ -5,10 +5,12 @@ import './SearchTable.scss';
 import {faSort, faSortDown, faSortUp} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {SORT_ASCENDING, SORT_DESCENDING} from "../../containers/Search/SearchTypes/SearchTypes";
+import {connect} from "react-redux";
+import {searchListSortKey} from "../../store/actions/search";
 
 class SearchTable extends React.Component {
 
-    sortIconRender(key) {
+    sortIconRender = (key) => {
         const keyValue = this.props.searchListSort[key];
 
         switch (keyValue) {
@@ -19,11 +21,7 @@ class SearchTable extends React.Component {
             default:
                 return <FontAwesomeIcon icon={faSort}/>;
         }
-    }
-
-    renderSearchList() {
-        return <SearchList data={this.props.searchList}/>;
-    }
+    };
 
     render() {
         return (
@@ -34,49 +32,49 @@ class SearchTable extends React.Component {
                         <th className={"w-25"}>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('category')}
+                                onClick={() => this.props.searchListSortKey('category')}
                             >Категория {this.sortIconRender('category')}</button>
                         </th>
                         <th className={"w-75"}>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('title')}
+                                onClick={() => this.props.searchListSortKey('title')}
                             >Тема {this.sortIconRender('title')}</button>
                         </th>
                         <th>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('author')}
+                                onClick={() => this.props.searchListSortKey('author')}
                             >Автор {this.sortIconRender('author')}</button>
                         </th>
                         <th>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('size')}
+                                onClick={() => this.props.searchListSortKey('size')}
                             >Размер {this.sortIconRender('size')}</button>
                         </th>
                         <th title={"Сиды"}>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('seeds')}
+                                onClick={() => this.props.searchListSortKey('seeds')}
                             >S {this.sortIconRender('seeds')}</button>
                         </th>
                         <th title={"Личи"}>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('leeches')}
+                                onClick={() => this.props.searchListSortKey('leeches')}
                             >L {this.sortIconRender('leeches')}</button>
                         </th>
                         <th title={"Торрент скачан"}>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('downloads')}
+                                onClick={() => this.props.searchListSortKey('downloads')}
                             >C {this.sortIconRender('downloads')}</button>
                         </th>
                         <th>
                             <button
                                 className={'btn'}
-                                onClick={() => this.props.sortSearchList('registered')}
+                                onClick={() => this.props.searchListSortKey('registered')}
                             >Добавлен {this.sortIconRender('registered')}</button>
                         </th>
                     </tr>
@@ -84,7 +82,7 @@ class SearchTable extends React.Component {
                 <tbody>
                 {
                     this.props.searchList.length
-                        ? this.renderSearchList()
+                        ? <SearchList data={this.props.searchList}/>
                         : null
                 }
                 </tbody>
@@ -93,4 +91,17 @@ class SearchTable extends React.Component {
     }
 }
 
-export default SearchTable;
+function mapStateToProps(state) {
+    return {
+        searchList: state.search.searchList,
+        searchListSort: state.search.searchListSort
+    }
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        searchListSortKey: (key) => dispatch(searchListSortKey(key))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SearchTable);
