@@ -5,7 +5,7 @@ const RutrackerApi = require('../src/RutrackerApi');
 router.get('/', function (req, res, next) {
     const rutracker = new RutrackerApi();
 
-    const {username, password, cap_code_name, cap_code_value, cap_sid, query, sort, id, page} = req.query;
+    const {username, password, cap_code_name, cap_code_value, cap_sid, query, sort, id, page, cm_box} = req.query;
     const cap = cap_code_name ? {
         cap_sid: cap_sid,
         [cap_code_name]: cap_code_value
@@ -24,6 +24,7 @@ router.get('/', function (req, res, next) {
             .then((status) => {
 
                 if (query) {
+
                     // search
                     rutracker.search(query).sort(sort).page(page).exec()
                         .then((results) => {
@@ -31,23 +32,38 @@ router.get('/', function (req, res, next) {
                             res.send(results);
                         })
                         .catch(err => res.send(err))
+
                 } else if (id) {
-                    // topic
-                    rutracker.topic(id)
-                        .then((topic) => {
-                            console.log(topic);
-                            res.send(topic);
-                        })
-                        .catch(err => res.send(err))
+
+                    if (cm_box != 0) {
+
+                        // topic comments
+                        rutracker.topicComments(id, cm_box)
+                            .then((comments) => {
+                                console.log(comments);
+                                res.send(comments);
+                            })
+                            .catch(err => res.send(err))
+
+                    } else {
+
+                        // topic
+                        rutracker.topic(id)
+                            .then((topic) => {
+                                console.log(topic);
+                                res.send(topic);
+                            })
+                            .catch(err => res.send(err))
+
+                    }
+
                 } else {
                     res.send(status);
                 }
 
             })
             .catch(err => res.send(err));
-
     }
-
 });
 
 module.exports = router;

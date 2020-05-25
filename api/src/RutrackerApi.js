@@ -3,7 +3,7 @@ const fs = require('fs');
 const Promise = require('bluebird');
 const RateLimiter = require('limitme');
 
-const {parseSearch, parseTopic, parseCaptcha, toWin1251} = require('./parsingUtils');
+const {parseSearch, parseTopic, parseTopicComments, parseCaptcha, toWin1251} = require('./parsingUtils');
 
 const promisify = Promise.promisify;
 
@@ -86,6 +86,20 @@ class RutrackerApi {
 
         return parseTopic(toWin1251(response.body));
     };
+
+    async topicComments(id, cm_box) {
+        const start = cm_box * 30;
+
+        let response = await post({
+            url: URLS.topic,
+            qs: {t: id, start: start},
+            encoding: 'binary'
+        });
+
+        await this.logout();
+
+        return parseTopicComments(toWin1251(response.body));
+    }
 
     download(id, path) {
         return limiter.enqueue()

@@ -13,7 +13,6 @@
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "morgan": "~1.9.1",
-    "rutracker-api": "git+https://github.com/redzumi/rutracker-api.git",
     "bluebird": "^3.4.7",
     "cheerio": "^0.22.0",
     "limitme": "^0.0.2",

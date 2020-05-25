@@ -100,26 +100,52 @@ const getStateConstant = (state) => {
     }
 };
 
-let parseTopic = (html) => {
-    let $ = cheerio.load(html, {decodeEntities: false});
+const commentsHandler = (commentsNodes) => {
+    const comments = [];
+    for (let i = 1; i < 30; i++) {
 
-    let topic = $('#topic_main tr');
-    let result = {
-        created: topic.find('.post-time').find('span a').html(),
-        since: topic.find('.post-time').find('span').next().html(),
-        image: topic.find('.post_body').find('.postImg').attr('title'),
-        magnet: topic.find('.attach').find('.magnet-link').attr('href'),
-        content: topic.find('.post_body').html()
+        const message = commentsNodes.find('.post_body').html();
+
+        if (message) {
+            comments.push({
+                message: message,
+                avatar: commentsNodes.find('.avatar').find('img').attr('src'),
+                nick: commentsNodes.find('.nick').first().text(),
+                joined: commentsNodes.find('.joined').html(),
+                posts: commentsNodes.find('.posts').html(),
+                date: commentsNodes.find('.post-time').find('.p-link').first().text()
+            });
+
+            commentsNodes = commentsNodes.next();
+        }
+    }
+    return comments;
+};
+
+const parseTopic = (html) => {
+    const $ = cheerio.load(html, {decodeEntities: false});
+
+    const topicNode = $('#topic_main');
+    const trackNode = topicNode.find('tr');
+    let commentsNodes = topicNode.find('.row2');
+
+    return {
+        created: trackNode.find('.post-time').find('span a').html(),
+        since: trackNode.find('.post-time').find('span').next().html(),
+        image: trackNode.find('.post_body').find('.postImg').attr('title'),
+        magnet: trackNode.find('.attach').find('.magnet-link').attr('href'),
+        content: trackNode.find('.post_body').html(),
+        comments: commentsHandler(commentsNodes),
     };
+};
 
-    // TODO: FIX ME
-    // let isBody = true;
-    // topic.find('.post_body').children().each((index, elm) => {
-    //     if (elm.attribs.id == 'tor-reged') isBody = false;
-    //     if (isBody) result.raw_body += $(elm).html();
-    // });
+const parseTopicComments = (html) => {
+    const $ = cheerio.load(html, {decodeEntities: false});
 
-    return result;
+    const topicNode = $('#topic_main');
+    let commentsNodes = topicNode.find('.row1');
+
+    return commentsHandler(commentsNodes);
 };
 
 let parseCaptcha = (html) => {
@@ -139,4 +165,4 @@ let toWin1251 = (data) => {
     return windows1251.decode(data, {mode: 'html'});
 };
 
-module.exports = {parseSearch, parseTopic, parseCaptcha, toWin1251};
+module.exports = {parseSearch, parseTopic, parseTopicComments, parseCaptcha, toWin1251};
